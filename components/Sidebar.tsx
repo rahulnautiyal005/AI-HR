@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { LayoutDashboard, Briefcase, Users, Settings, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, Settings, MessageSquare, Calendar, ChevronRight } from 'lucide-react';
 
 interface SidebarProps {
   currentView: string;
@@ -11,19 +12,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'jobs', label: 'Jobs', icon: Briefcase },
     { id: 'candidates', label: 'Candidates', icon: Users },
+    { id: 'calendar', label: 'Calendar', icon: Calendar },
     { id: 'chat', label: 'HR Assistant', icon: MessageSquare },
   ];
 
   return (
-    <div className="w-64 bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0 shadow-xl z-20">
-      <div className="p-6 border-b border-slate-700">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-          TalentAI
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">Recruitment OS</p>
+    <div className="w-72 bg-slate-950 text-white flex flex-col h-screen fixed left-0 top-0 shadow-2xl z-20 border-r border-slate-800">
+      
+      {/* Brand Section */}
+      <div className="p-8 pb-4">
+        <div className="flex items-center gap-2 mb-1">
+            <div className="w-8 h-8 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg shadow-indigo-500/30">
+                T
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">TalentAI</h1>
+        </div>
+        <p className="text-[10px] text-slate-500 font-medium tracking-widest uppercase ml-10">Recruitment OS v2.0</p>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <div className="h-px bg-slate-800 mx-6 mb-6"></div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 space-y-2">
+        <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Main Menu</p>
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;
@@ -31,31 +42,41 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, setView }) => {
             <button
               key={item.id}
               onClick={() => setView(item.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+              className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-300 group ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-inner'
+                  : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
               }`}
             >
-              <Icon size={20} />
-              <span className="font-medium">{item.label}</span>
+              <div className="flex items-center space-x-3">
+                  <Icon size={20} className={isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'} />
+                  <span className={`text-sm font-medium ${isActive ? 'text-indigo-100' : ''}`}>{item.label}</span>
+              </div>
+              {isActive && <ChevronRight size={14} className="text-indigo-400" />}
             </button>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-700">
+      {/* Footer / Settings */}
+      <div className="p-4 bg-slate-900/50 backdrop-blur-sm border-t border-slate-800">
         <button 
             onClick={() => setView('settings')}
-            className={`flex items-center space-x-3 transition-colors px-4 py-2 w-full rounded-lg ${
-                currentView === 'settings' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`flex items-center space-x-3 transition-colors px-4 py-3 w-full rounded-xl hover:bg-slate-800 ${
+                currentView === 'settings' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'
             }`}
         >
             <Settings size={20} />
-            <span>Settings</span>
+            <span className="text-sm font-medium">System Settings</span>
         </button>
-        <div className="mt-4 px-4 py-2 bg-slate-800 rounded text-xs text-slate-500">
-            Build v1.0.4
+        <div className="mt-4 flex items-center gap-3 px-4">
+            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs font-bold border-2 border-slate-800">
+                A
+            </div>
+            <div className="flex-1">
+                <p className="text-xs font-bold text-slate-200">Admin User</p>
+                <p className="text-[10px] text-slate-500">acme.corp@talentai.com</p>
+            </div>
         </div>
       </div>
     </div>

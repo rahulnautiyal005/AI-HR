@@ -1,9 +1,10 @@
+
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Candidate, Job } from "../types";
 
 // Helper to get AI instance safely
 const getAI = () => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = process.env.API_KEY || import.meta.env.VITE_API_KEY; // Support both Vite and Node envs
   if (!apiKey) {
     console.error("API_KEY is missing via process.env.API_KEY");
     throw new Error("API Key missing");
@@ -109,13 +110,17 @@ export const rankCandidateAI = async (candidate: Partial<Candidate>, job: Job): 
 };
 
 // 3. HR Chatbot
-export const chatWithHR = async (history: {role: string, parts: {text: string}[]}[], message: string) => {
+export const chatWithHR = async (history: {role: string, parts: {text: string}[]}[], message: string, context?: string) => {
   const ai = getAI();
   try {
+    const systemInstruction = context 
+        ? `You are a helpful HR Assistant for TalentAI. You answer questions about candidates, interview scheduling, and company policies. \n\nCONTEXT:\n${context}` 
+        : "You are a helpful HR Assistant for TalentAI. You answer questions about candidates, interview scheduling, and company policies. Keep answers professional and concise.";
+
     const chat = ai.chats.create({
       model: "gemini-3-flash-preview",
       config: {
-        systemInstruction: "You are a helpful HR Assistant for TalentAI. You answer questions about candidates, interview scheduling, and company policies. Keep answers professional and concise.",
+        systemInstruction: systemInstruction,
       },
       history: history
     });

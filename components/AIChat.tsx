@@ -1,9 +1,14 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Bot } from 'lucide-react';
 import { chatWithHR } from '../services/geminiService';
-import { ChatMessage } from '../types';
+import { ChatMessage, Job } from '../types';
 
-export const AIChat: React.FC = () => {
+interface AIChatProps {
+    jobContext?: Job;
+}
+
+export const AIChat: React.FC<AIChatProps> = ({ jobContext }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: '1', role: 'model', text: 'Hi! I am the AI HR Assistant. Ask me about candidate status, interview schedules, or company recruitment policies.', timestamp: Date.now() }
@@ -29,7 +34,18 @@ export const AIChat: React.FC = () => {
       parts: [{ text: m.text }]
     }));
 
-    const responseText = await chatWithHR(history, userMsg.text);
+    // Prepare context string
+    let contextStr = '';
+    if (jobContext) {
+        contextStr = `Current User Job Context:
+        Title: ${jobContext.title}
+        Description: ${jobContext.description}
+        Interview Rounds: 
+        ${jobContext.rounds.map(r => `Round ${r.roundNumber}: ${r.topic} - ${r.description}`).join('\n')}
+        `;
+    }
+
+    const responseText = await chatWithHR(history, userMsg.text, contextStr);
     
     const botMsg: ChatMessage = { id: (Date.now()+1).toString(), role: 'model', text: responseText, timestamp: Date.now() };
     setMessages(prev => [...prev, botMsg]);

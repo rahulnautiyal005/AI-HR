@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import { Job } from '../types';
-import { Plus, MapPin, Calendar, Trash2 } from 'lucide-react';
+import { Job, Round } from '../types';
+import { Plus, MapPin, Calendar, Trash2, List } from 'lucide-react';
 
 interface JobsProps {
   jobs: Job[];
@@ -15,12 +16,22 @@ export const Jobs: React.FC<JobsProps> = ({ jobs, addJob, onViewCandidates }) =>
     department: '',
     location: '',
     description: '',
-    requirements: []
+    requirements: [],
+    rounds: []
   });
   const [reqInput, setReqInput] = useState('');
+  
+  // Round Inputs
+  const [roundTopic, setRoundTopic] = useState('');
+  const [roundDesc, setRoundDesc] = useState('');
 
   const handleAddJob = () => {
     if (!newJob.title || !newJob.description) return;
+
+    // Ensure at least one round if none added
+    const finalRounds = (newJob.rounds && newJob.rounds.length > 0) 
+        ? newJob.rounds 
+        : [{ roundNumber: 1, topic: 'General Screening', description: 'Initial discussion.' }];
 
     const job: Job = {
       id: `job-${Date.now()}`,
@@ -29,12 +40,13 @@ export const Jobs: React.FC<JobsProps> = ({ jobs, addJob, onViewCandidates }) =>
       location: newJob.location || 'Remote',
       description: newJob.description || '',
       requirements: newJob.requirements || [],
+      rounds: finalRounds,
       postedDate: new Date().toISOString().split('T')[0],
       status: 'Active'
     };
     addJob(job);
     setShowForm(false);
-    setNewJob({ title: '', department: '', location: '', description: '', requirements: [] });
+    setNewJob({ title: '', department: '', location: '', description: '', requirements: [], rounds: [] });
   };
 
   const addRequirement = () => {
@@ -42,6 +54,20 @@ export const Jobs: React.FC<JobsProps> = ({ jobs, addJob, onViewCandidates }) =>
       setNewJob({ ...newJob, requirements: [...(newJob.requirements || []), reqInput] });
       setReqInput('');
     }
+  };
+
+  const addRound = () => {
+      if(roundTopic.trim()) {
+          const nextRoundNum = (newJob.rounds?.length || 0) + 1;
+          const newRound: Round = {
+              roundNumber: nextRoundNum,
+              topic: roundTopic,
+              description: roundDesc || 'No description provided.'
+          };
+          setNewJob({ ...newJob, rounds: [...(newJob.rounds || []), newRound] });
+          setRoundTopic('');
+          setRoundDesc('');
+      }
   };
 
   return (
@@ -87,23 +113,59 @@ export const Jobs: React.FC<JobsProps> = ({ jobs, addJob, onViewCandidates }) =>
             onChange={(e) => setNewJob({...newJob, description: e.target.value})}
           />
           
-          <div className="mb-4">
-            <p className="text-sm font-medium mb-2 text-slate-600">Key Requirements (for AI Scoring)</p>
-            <div className="flex gap-2">
-              <input 
-                value={reqInput}
-                onChange={(e) => setReqInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addRequirement()}
-                placeholder="Add skill (e.g. React, Python)"
-                className="flex-1 border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-              <button onClick={addRequirement} className="bg-slate-200 px-4 rounded hover:bg-slate-300 font-medium text-slate-700">Add</button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {newJob.requirements?.map((req, i) => (
-                <span key={i} className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-sm border border-indigo-100">{req}</span>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+              {/* Requirements */}
+              <div>
+                <p className="text-sm font-medium mb-2 text-slate-600">Key Requirements (for AI Scoring)</p>
+                <div className="flex gap-2">
+                <input 
+                    value={reqInput}
+                    onChange={(e) => setReqInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addRequirement()}
+                    placeholder="Add skill (e.g. React)"
+                    className="flex-1 border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+                <button onClick={addRequirement} className="bg-slate-200 px-4 rounded hover:bg-slate-300 font-medium text-slate-700">Add</button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                {newJob.requirements?.map((req, i) => (
+                    <span key={i} className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-sm border border-indigo-100">{req}</span>
+                ))}
+                </div>
+              </div>
+
+              {/* Interview Rounds */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  <p className="text-sm font-medium mb-2 text-slate-600 flex items-center gap-2">
+                      <List size={16}/> Interview Structure
+                  </p>
+                  <div className="flex gap-2 mb-2">
+                      <input 
+                        value={roundTopic}
+                        onChange={(e) => setRoundTopic(e.target.value)}
+                        placeholder="Round Topic (e.g. System Design)"
+                        className="flex-1 border p-2 rounded text-sm outline-none"
+                      />
+                      <input 
+                        value={roundDesc}
+                        onChange={(e) => setRoundDesc(e.target.value)}
+                        placeholder="Description (Optional)"
+                        className="flex-1 border p-2 rounded text-sm outline-none"
+                      />
+                      <button onClick={addRound} className="bg-indigo-600 text-white px-3 rounded text-sm hover:bg-indigo-700">Add</button>
+                  </div>
+                  <div className="space-y-2 mt-2 max-h-32 overflow-y-auto">
+                      {newJob.rounds?.map((r, i) => (
+                          <div key={i} className="bg-white p-2 rounded border border-slate-200 text-sm flex justify-between items-center">
+                              <div>
+                                  <span className="font-bold text-slate-700">Round {r.roundNumber}:</span> {r.topic}
+                              </div>
+                              <span className="text-xs text-slate-400 truncate max-w-[150px]">{r.description}</span>
+                          </div>
+                      ))}
+                      {(!newJob.rounds || newJob.rounds.length === 0) && <p className="text-xs text-slate-400 italic">No rounds added yet.</p>}
+                  </div>
+              </div>
           </div>
 
           <div className="flex justify-end gap-2">
@@ -126,18 +188,22 @@ export const Jobs: React.FC<JobsProps> = ({ jobs, addJob, onViewCandidates }) =>
               </span>
             </div>
             
-            <p className="text-slate-600 text-sm line-clamp-3 mb-4">{job.description}</p>
+            <p className="text-slate-600 text-sm line-clamp-2 mb-4">{job.description}</p>
             
             <div className="flex items-center gap-4 text-xs text-slate-400 mb-4">
               <span className="flex items-center gap-1"><MapPin size={14}/> {job.location}</span>
               <span className="flex items-center gap-1"><Calendar size={14}/> {job.postedDate}</span>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-4">
-              {job.requirements.slice(0, 3).map((r, i) => (
-                <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">{r}</span>
-              ))}
-              {job.requirements.length > 3 && <span className="text-xs text-slate-400">+{job.requirements.length - 3}</span>}
+            <div className="mb-4">
+                 <div className="text-xs font-semibold text-slate-500 mb-1">Process:</div>
+                 <div className="flex flex-wrap gap-1">
+                     {job.rounds.map(r => (
+                         <span key={r.roundNumber} className="text-[10px] bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-slate-600">
+                             R{r.roundNumber}: {r.topic}
+                         </span>
+                     ))}
+                 </div>
             </div>
 
             <button 
